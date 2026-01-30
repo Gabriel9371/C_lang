@@ -1,7 +1,33 @@
 #include "stdio.h"
+#include "stdlib.h"
+#include "unistd.h"
 
 #define ALTURA 20
 #define LARGURA 30
+
+#define TAMANHO_INIT_COBRA 3
+
+typedef struct {
+  int linha;
+  int coluna;
+} Parte;
+
+Parte cobra[TAMANHO_INIT_COBRA];
+
+void init_cobra() {
+
+  int linha_base = ALTURA / 2;
+  int coluna_base = LARGURA / 2;
+
+  cobra[0].linha = linha_base;
+  cobra[0].coluna = coluna_base;
+
+  cobra[1].linha = linha_base;
+  cobra[1].coluna = coluna_base - 1;
+
+  cobra[2].linha = linha_base;
+  cobra[2].coluna = coluna_base - 2;
+}
 
 void mapa() {
 
@@ -17,19 +43,14 @@ void mapa() {
     }
   }
 
-  int linha_base = ALTURA / 2;
-  int coluna_base = LARGURA / 2;
-  int col_a = (LARGURA / 2) - 1;
-  int col_b = (LARGURA / 2) - 2;
-  
-  coluna_base += 9;
-  col_a += 9;
-  col_b += 9;
+  for (int i = TAMANHO_INIT_COBRA - 1; i > 0; i--) {
+    cobra[i] = cobra[i - 1];
+  }
+  cobra[0].coluna += 1;
 
-  mapa[linha_base][coluna_base] = '@';
-  mapa[linha_base][col_a] = '@';
-  mapa[linha_base][col_b] = '@';
-
+  for (int i = 0; i < TAMANHO_INIT_COBRA; i++) {
+    mapa[cobra[i].linha][cobra[i].coluna] = '@';
+  }
 
   for (int i = 0; i < ALTURA; i++) {
     for (int j = 0; j < LARGURA; j++) {
@@ -39,7 +60,11 @@ void mapa() {
   }
 }
 int main() {
+  init_cobra();
 
-  /// não quebre a porra da minha linha neovim
-  mapa();
+  while (1) {
+    system("clear");
+    mapa();
+    usleep(200000);
+  }
 }
