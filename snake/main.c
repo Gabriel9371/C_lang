@@ -2,6 +2,28 @@
 #include "stdlib.h"
 #include "unistd.h"
 
+//-=-=fis isso usando chatGPT pois não sei como fazer :) -=-=
+#include <fcntl.h>
+#include <termios.h>
+void conf_terminal() {
+  struct termios t;
+  tcgetattr(STDIN_FILENO, &t);
+  t.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &t);
+
+  fcntl(STDIN_FILENO, F_SETFL, O_NONBLOCK);
+
+  /*
+    Pelo que intendi isso faz com que
+    o terminal não espere eu dar enter
+    pra poder executar algo, e o ECHO
+    impede que os comndos pra mover a cobra
+    como W,A,S,D não fiquem aparecendo
+  */
+}
+
+//-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
 #define ALTURA 20
 #define LARGURA 30
 
@@ -13,6 +35,17 @@ typedef struct {
 } Parte;
 
 Parte cobra[TAMANHO_INIT_COBRA];
+
+typedef enum {
+
+  CIMA,
+  BAIXO,
+  ESQUERDA,
+  DIREITA
+
+} Direcao;
+
+Direcao direcao;
 
 void init_cobra() {
 
@@ -46,7 +79,14 @@ void mapa() {
   for (int i = TAMANHO_INIT_COBRA - 1; i > 0; i--) {
     cobra[i] = cobra[i - 1];
   }
-  cobra[0].coluna += 1;
+  if (direcao == DIREITA)
+    cobra[0].coluna++;
+  if (direcao == ESQUERDA)
+    cobra[0].coluna--;
+  if (direcao == CIMA)
+    cobra[0].linha--;
+  if (direcao == BAIXO)
+    cobra[0].linha++;
 
   for (int i = 0; i < TAMANHO_INIT_COBRA; i++) {
     mapa[cobra[i].linha][cobra[i].coluna] = '@';
@@ -62,7 +102,21 @@ void mapa() {
 int main() {
   init_cobra();
 
+  direcao = ESQUERDA;
+
+  conf_terminal();
   while (1) {
+    char tecla;
+    if (read(STDIN_FILENO, &tecla, 1) > 0) {
+      if (tecla == 'w')
+        direcao = CIMA;
+      if (tecla == 'a')
+        direcao = ESQUERDA;
+      if (tecla == 's')
+        direcao = BAIXO;
+      if (tecla == 'd')
+        direcao = DIREITA;
+    }
     system("clear");
     mapa();
     usleep(200000);
