@@ -1,5 +1,6 @@
 #include "stdio.h"
 #include "stdlib.h"
+#include "time.h"
 #include "unistd.h"
 
 //-=-=fis isso usando chatGPT pois não sei como fazer :) -=-=
@@ -28,13 +29,33 @@ void conf_terminal() {
 #define LARGURA 30
 
 #define TAMANHO_INIT_COBRA 3
+#define TAM_MAX 100
 
 typedef struct {
   int linha;
   int coluna;
 } Parte;
 
-Parte cobra[TAMANHO_INIT_COBRA];
+typedef struct {
+  int linha;
+  int coluna;
+} Comida;
+
+Comida comida;
+
+void gen_comida() {
+
+  // -2 e +1 pra não aparecer comida na borda
+  comida.linha = rand() % (ALTURA - 2) + 1;
+  comida.coluna = rand() % (LARGURA - 2) + 1;
+}
+
+Parte cobra[TAM_MAX];
+int tamanho_Cobra = 3;
+
+int comeu() {
+  return cobra[0].linha == comida.linha && cobra[0].coluna == comida.coluna;
+}
 
 typedef enum {
 
@@ -76,7 +97,7 @@ void mapa() {
     }
   }
 
-  for (int i = TAMANHO_INIT_COBRA - 1; i > 0; i--) {
+  for (int i = tamanho_Cobra - 1; i > 0; i--) {
     cobra[i] = cobra[i - 1];
   }
   if (direcao == DIREITA)
@@ -88,9 +109,11 @@ void mapa() {
   if (direcao == BAIXO)
     cobra[0].linha++;
 
-  for (int i = 0; i < TAMANHO_INIT_COBRA; i++) {
+  for (int i = 0; i < tamanho_Cobra; i++) {
     mapa[cobra[i].linha][cobra[i].coluna] = '@';
   }
+
+  mapa[comida.linha][comida.coluna] = '*';
 
   for (int i = 0; i < ALTURA; i++) {
     for (int j = 0; j < LARGURA; j++) {
@@ -99,26 +122,73 @@ void mapa() {
     printf("\n");
   }
 }
+
+int bateu_na_parede() {
+  if (cobra[0].linha <= 0)
+    return 1;
+  if (cobra[0].linha >= ALTURA - 1)
+    return 1;
+  if (cobra[0].coluna <= 0)
+    return 1;
+  if (cobra[0].coluna >= LARGURA - 1)
+    return 1;
+
+  return 0;
+}
+
+int direcao_oposta(Direcao atual, Direcao nova) {
+  if (atual == CIMA && nova == BAIXO)
+    return 1;
+  if (atual == BAIXO && nova == CIMA)
+    return 1;
+  if (atual == ESQUERDA && nova == DIREITA)
+    return 1;
+  if (atual == DIREITA && nova == ESQUERDA)
+    return 1;
+
+  return 0;
+}
+
 int main() {
   init_cobra();
 
   direcao = ESQUERDA;
+  Direcao nova;
+
+  srand(time(NULL));
+  gen_comida();
 
   conf_terminal();
   while (1) {
     char tecla;
+
     if (read(STDIN_FILENO, &tecla, 1) > 0) {
       if (tecla == 'w')
-        direcao = CIMA;
+        nova = CIMA;
       if (tecla == 'a')
-        direcao = ESQUERDA;
+        nova = ESQUERDA;
       if (tecla == 's')
-        direcao = BAIXO;
+        nova = BAIXO;
       if (tecla == 'd')
-        direcao = DIREITA;
+        nova = DIREITA;
+
+      if (!direcao_oposta(direcao, nova)) {
+        direcao = nova;
+      }
+    }
+    if (comeu()) {
+      cobra[tamanho_Cobra] = cobra[tamanho_Cobra - 1];
+      tamanho_Cobra++;
+      gen_comida();
     }
     system("clear");
     mapa();
-    usleep(200000);
+
+    if (bateu_na_parede()) {
+      printf("GAME OVER\n");
+      break;
+    }
+
+    usleep(100000);
   }
 }
