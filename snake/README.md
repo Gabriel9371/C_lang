@@ -25,3 +25,5 @@ Para compilar e rodar o projeto, você precisará de um compilador C
 ---
 *Ainda sou iniciante no mundo do baixo nível, mas meu interesse pela área aumenta a cada linha de código!*
 
+![Demonstração do jogo](img/snake.gif)
+
