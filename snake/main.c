@@ -3,7 +3,7 @@
 #include "time.h"
 #include "unistd.h"
 
-//-=-=fis isso usando chatGPT pois não sei como fazer :) -=-=
+//-=-= esse treho foi feito usando chatGPT pois não sei como fazer :) -=-=
 #include <fcntl.h>
 #include <termios.h>
 void conf_terminal() {
